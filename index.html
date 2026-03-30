@@ -45,7 +45,11 @@
             border-color: #ca8a04;
             box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.2);
         }
-    </style>
+    </style>     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 </head>
 <body class="p-4 pb-20">
     <div class="max-w-7xl mx-auto">
@@ -467,6 +471,13 @@
 
         window.onload = init;
     </script>
-</body>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGV2ZW50ID0+IHsgZXZlbnQucmVzcG9uZFdpdGgoZmV0Y2goZXZlbnQucmVxdWVzdCkpOyB9KTs=');
+    });
+  }
+</script>
+ </body>
 </html>
 
