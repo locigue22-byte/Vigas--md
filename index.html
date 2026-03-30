@@ -1,34 +1,85 @@
-// Función para capturar datos y calcular al instante
-function actualizarVigaData(campo, valor) {
-    // 1. Guardar el valor ingresado
-    window[campo] = parseFloat(valor) || 0;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Vigas ACI 318</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 p-4 font-sans text-slate-900">
+    <div class="max-w-xl mx-auto space-y-6">
+        <header class="text-center py-4">
+            <h1 class="text-2xl font-black text-slate-800 tracking-tight">CÁLCULO DE VIGAS ACI 318</h1>
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Sincronización por Simetría</p>
+        </header>
 
-    // 2. Obtener todas las variables
-    let b = window['b'] || 0;     // Ancho
-    let h = window['h'] || 0;     // Altura
-    let As = window['As'] || 0;   // Acero (cm2)
-    let fc = 210;                 // f'c por defecto
-    let fy = 4200;                // fy por defecto
-    let rec = 4;                  // Recubrimiento
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="bg-blue-600 w-2 h-6 rounded-full"></span>
+                <h2 id="vigaTitleDisplay" class="font-extrabold text-slate-800 uppercase text-sm">Configuración</h2>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Ancho b (cm)</label>
+                    <input type="number" oninput="actualizarVigaData('b', this.value)" class="w-full bg-slate-50 border-none rounded-xl p-3 focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Altura h (cm)</label>
+                    <input type="number" oninput="actualizarVigaData('h', this.value)" class="w-full bg-slate-50 border-none rounded-xl p-3 focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+                </div>
+            </div>
+        </div>
 
-    if (b > 0 && h > 0 && As > 0) {
-        let d = h - rec; // Peralte efectivo
-        
-        // Fórmula ACI 318: a = (As * fy) / (0.85 * f'c * b)
-        let a = (As * fy) / (0.85 * fc * b);
-        
-        // Momento Nominal: Mn = As * fy * (d - a/2)
-        let Mn = As * fy * (d - (a / 2));
-        
-        // Conversión a Toneladas-metro y Factor Phi (0.9)
-        let MnTm = Mn / 100000;
-        let phiMn = MnTm * 0.9;
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+            <h2 class="font-extrabold text-slate-800 uppercase text-sm mb-4">Refuerzo Longitudinal</h2>
+            <div class="bg-slate-50 rounded-2xl p-5 flex justify-between items-center">
+                <div>
+                    <p class="text-[9px] font-black text-blue-500 uppercase">Área Total As</p>
+                    <input type="number" oninput="actualizarVigaData('As', this.value)" class="text-2xl font-black bg-transparent border-none p-0 w-24 focus:ring-0" placeholder="0.00">
+                    <span class="text-xl font-black italic ml-1">cm²</span>
+                </div>
+                <button onclick="location.reload()" class="bg-red-50 text-red-500 text-[10px] font-black px-4 py-2 rounded-lg uppercase">Reiniciar</button>
+            </div>
+        </div>
 
-        // 3. ACTUALIZAR LA PANTALLA (Buscando tus IDs reales)
-        document.getElementById('vigaTitleDisplay').innerText = "CALCULADO";
-        // Aquí conectamos con los campos de tu diseño
-        if(document.querySelector('.text-3xl')) {
-            document.querySelector('.text-3xl').innerText = phiMn.toFixed(2) + " t-m";
+        <div class="bg-slate-100 rounded-[40px] p-8 text-center border-4 border-white shadow-inner">
+            <p class="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest text-opacity-50">Resistencia de Diseño (ΦMn)</p>
+            <div id="resultadoFinal" class="text-6xl font-black text-slate-800">0.00<span class="text-2xl text-slate-400 ml-2 italic">t-m</span></div>
+            <div class="flex justify-around mt-6 border-t border-slate-200 pt-4">
+                <div>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">Factor Φ</p>
+                    <p class="font-black text-slate-600">0.900</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.vigaData = { b: 0, h: 0, As: 0 };
+
+        function actualizarVigaData(campo, valor) {
+            window.vigaData[campo] = parseFloat(valor) || 0;
+            
+            const { b, h, As } = window.vigaData;
+
+            if (b > 0 && h > 0 && As > 0) {
+                const fc = 210; 
+                const fy = 4200;
+                const d = h - 4; // Peralte efectivo
+                
+                // Fórmula: a = (As * fy) / (0.85 * f'c * b)
+                const a = (As * fy) / (0.85 * fc * b);
+                
+                // Momento Nominal: Mn = As * fy * (d - a/2)
+                const Mn = As * fy * (d - (a / 2));
+                
+                // ΦMn en Toneladas-metro
+                const phiMn = (Mn * 0.9) / 100000;
+
+                document.getElementById('resultadoFinal').innerHTML = phiMn.toFixed(2) + '<span class="text-2xl text-slate-400 ml-2 italic">t-m</span>';
+                document.getElementById('vigaTitleDisplay').innerText = "Viga Calculada";
+            }
         }
-    }
-}
+    </script>
+</body>
+</html>
