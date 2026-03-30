@@ -474,7 +474,9 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGV2ZW50ID0+IHsgZXZlbnQucmVzcG9uZFdpdGgoZmV0Y2goZXZlbnQucmVxdWVzdCkpOyB9KTs=');
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('SW registrado'))
+        .catch(err => console.log('Error SW', err));
     });
   }
 </script>
