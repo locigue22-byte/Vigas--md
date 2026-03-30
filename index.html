@@ -194,7 +194,7 @@
 
         function init() {
             vigaConfigs.forEach((v, i) => {
-                const btn = document.getElementById(tab-${i});
+                const btn = document.getElementById(`tab-${i}`);
                 if(btn) btn.innerText = v.name;
             });
             switchViga(0);
@@ -206,22 +206,22 @@
             const isPos = viga.type === "pos";
 
             vigaConfigs.forEach((v, i) => {
-                const btn = document.getElementById(tab-${i});
+                const btn = document.getElementById(`tab-${i}`);
                 if(btn) {
                     btn.className = i === index ? 
-                        flex-1 min-w-[120px] px-4 py-4 text-[10px] uppercase tracking-tighter transition-all ${isPos ? 'tab-pos' : 'tab-neg'} : 
+                        `flex-1 min-w-[120px] px-4 py-4 text-[10px] uppercase tracking-tighter transition-all ${isPos ? 'tab-pos' : 'tab-neg'}` : 
                         "flex-1 min-w-[120px] px-4 py-4 text-[10px] uppercase tracking-tighter transition-all tab-inactive";
                 }
             });
 
-            document.getElementById('resultBox').className = p-8 rounded-3xl text-white shadow-xl transition-all duration-500 ${isPos ? 'res-pos' : 'res-neg'};
+            document.getElementById('resultBox').className = `p-8 rounded-3xl text-white shadow-xl transition-all duration-500 ${isPos ? 'res-pos' : 'res-neg'}`;
             document.getElementById('configCardBorder').style.borderColor = isPos ? "#10b981" : "#ef4444";
             document.getElementById('techCardBorder').style.borderColor = isPos ? "#10b981" : "#ef4444";
             document.getElementById('syncNotice').classList.toggle('hidden', !isPos);
 
             document.getElementById('momentoLabel').innerHTML = isPos ? 
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Momento Positivo (+) : 
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Momento Negativo (-);
+                `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Momento Positivo (+)` : 
+                `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Momento Negativo (-)`;
             
             document.getElementById('muManual').value = viga.mu || "";
 
@@ -289,7 +289,7 @@
         function calculate() {
             const v = vigaConfigs[currentIdx];
             let As = 0; v.bars.forEach((c, i) => As += c * barTemplates[i].area);
-            document.getElementById('asTotal').innerText = ${As.toFixed(2)} cm²;
+            document.getElementById('asTotal').innerText = `${As.toFixed(2)} cm²`;
 
             if (v.b <= 0 || v.h <= 0 || As <= 0) { 
                 limpiarResultados();
@@ -311,18 +311,18 @@
             const phiMn = phi * MnTonM;
             
             document.getElementById('phiMn').innerText = phiMn.toFixed(2);
-            document.getElementById('mnValue').innerText = ${MnTonM.toFixed(2)} t-m;
+            document.getElementById('mnValue').innerText = `${MnTonM.toFixed(2)} t-m`;
             document.getElementById('phiValue').innerText = phi.toFixed(3);
-            document.getElementById('res_d').innerText = ${d.toFixed(1)} cm;
-            document.getElementById('res_a').innerText = ${a.toFixed(2)} cm;
-            document.getElementById('res_c').innerText = ${c.toFixed(2)} cm;
+            document.getElementById('res_d').innerText = `${d.toFixed(1)} cm`;
+            document.getElementById('res_a').innerText = `${a.toFixed(2)} cm`;
+            document.getElementById('res_c').innerText = `${c.toFixed(2)} cm`;
             document.getElementById('res_es').innerText = et.toFixed(5);
 
             const statusBox = document.getElementById('statusCheck');
             if(v.mu > 0) {
                 statusBox.classList.remove('hidden');
                 if(phiMn >= v.mu) {
-                    statusBox.innerHTML = <span class="flex items-center justify-center gap-1">✓ SECCIÓN CUMPLE</span>;
+                    statusBox.innerHTML = `<span class="flex items-center justify-center gap-1">✓ SECCIÓN CUMPLE</span>`;
                     statusBox.className = "mt-3 py-2 px-3 text-[12px] font-black text-center uppercase tracking-widest text-emerald-700 bg-emerald-100 rounded-lg border-2 border-emerald-200 shadow-sm";
                 } else {
                     statusBox.innerHTML = `
@@ -421,7 +421,7 @@
                 ctx.font = "900 11px Inter";
                 ctx.fillStyle = bar.color;
                 ctx.textAlign = "center";
-                ctx.fillText(Φ${bar.name}, posX, labelY - 8);
+                ctx.fillText(`Φ${bar.name}`, posX, labelY - 8);
             });
 
             const cotaColor = "#1e293b";
@@ -444,7 +444,7 @@
 
             const bY = startY + rH + 30;
             drawCotaLine(startX, bY, startX + w, bY);
-            ctx.fillText(b = ${b} cm, startX + w/2, bY + 18);
+            ctx.fillText(`b = ${b} cm`, startX + w/2, bY + 18);
 
             const dX = startX - 35;
             const dEndY = isPos ? startY + sD : startY + (rH - sD);
@@ -453,7 +453,7 @@
             ctx.save();
             ctx.translate(dX - 12, (dStartY + dEndY)/2);
             ctx.rotate(-Math.PI/2);
-            ctx.fillText(d = ${d.toFixed(1)} cm, 0, 0);
+            ctx.fillText(`d = ${d.toFixed(1)} cm`, 0, 0);
             ctx.restore();
             
             const hX = startX + w + 35;
@@ -461,14 +461,15 @@
             ctx.save();
             ctx.translate(hX + 12, startY + rH/2);
             ctx.rotate(Math.PI/2);
-            ctx.fillText(h = ${h} cm, 0, 0);
+            ctx.fillText(`h = ${h} cm`, 0, 0);
             ctx.restore();
 
             const legend = document.getElementById('steelLegend');
-            legend.innerHTML = bars.map((c, idx) => c > 0 ? <span style="color: ${barTemplates[idx].color}">${c}Φ${barTemplates[idx].name}</span> : "").filter(s => s).join(" | ");
+            legend.innerHTML = bars.map((c, idx) => c > 0 ? `<span style="color: ${barTemplates[idx].color}">${c}Φ${barTemplates[idx].name}</span>` : "").filter(s => s).join(" | ");
         }
 
         window.onload = init;
     </script>
 </body>
 </html>
+
