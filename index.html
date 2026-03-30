@@ -2,197 +2,471 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Vigas ACI 318</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cálculo de Momento Nominal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
-        .card { background: white; border-radius: 24px; padding: 24px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f3f4f6; 
+            -webkit-tap-highlight-color: transparent;
+            color: #1e293b;
+        }
+        .input-card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .counter-btn { transition: all 0.2s; cursor: pointer; }
+        .counter-btn:active { transform: scale(0.85); }
+        
+        .tab-neg { border-bottom: 4px solid #ef4444; color: #991b1b; font-weight: 800; background: white; }
+        .tab-pos { border-bottom: 4px solid #10b981; color: #065f46; font-weight: 800; background: white; }
+        .tab-inactive { color: #64748b; border-bottom: 4px solid transparent; font-weight: 600; }
+
+        .res-neg { background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%); }
+        .res-pos { background: linear-gradient(135deg, #064e3b 0%, #10b981 100%); }
+        
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .alert-danger {
+            animation: pulse-red 2s infinite;
+        }
+
+        .highlight-input {
+            background-color: #fefce8;
+            border: 2px solid #eab308;
+            transition: all 0.3s;
+        }
+        .highlight-input:focus {
+            background-color: #fef9c3;
+            border-color: #ca8a04;
+            box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.2);
+        }
     </style>
 </head>
-<body class="p-4 pb-24">
-    <div class="max-w-2xl mx-auto space-y-6">
-        
-        <header class="text-center py-4">
-            <h1 class="text-2xl font-black text-slate-900 leading-tight">Cálculo de Momento<br>Nominal de Viga</h1>
-            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-2">Sincronización ACI 318</p>
+<body class="p-4 pb-20">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-6 text-center">
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Cálculo de Momento Nominal de Viga</h1>
+            <p class="text-slate-600 text-sm font-bold uppercase tracking-wider">Sincronización por Simetría ACI 318</p>
         </header>
 
-        <div class="flex overflow-x-auto gap-2 no-scrollbar pb-2">
-            <button class="bg-white text-slate-400 text-[10px] font-black px-4 py-3 rounded-xl uppercase whitespace-nowrap">Apoyo 1 (-)</button>
-            <button class="bg-emerald-500 text-white text-[10px] font-black px-6 py-3 rounded-xl uppercase whitespace-nowrap shadow-lg shadow-emerald-200">Vano 1 (+)</button>
-            <button class="bg-white text-slate-400 text-[10px] font-black px-4 py-3 rounded-xl uppercase whitespace-nowrap">Apoyo 2 (-)</button>
+        <div class="flex overflow-x-auto mb-6 border-b border-slate-300 bg-white rounded-t-xl no-scrollbar shadow-sm">
+            <button onclick="switchViga(0)" id="tab-0" class="flex-1 min-w-[120px] px-4 py-4 text-[10px] uppercase tracking-tighter transition-all"></button>
+            <button onclick="switchViga(1)" id="tab-1" class="flex-1 min-w-[120px] px-4 py-4 text-[10px] uppercase tracking-tighter transition-all"></button>
+            <button onclick="switchViga(2)" id="tab-2" class="flex-1 min-w-[120px] px-4 py-4 text-[10px] uppercase tracking-tighter transition-all"></button>
+            <button onclick="switchViga(3)" id="tab-3" class="flex-1 min-w-[120px] px-4 py-4 text-[10px] uppercase tracking-tighter transition-all"></button>
+            <button onclick="switchViga(4)" id="tab-4" class="flex-1 min-w-[120px] px-4 py-4 text-[10px] uppercase tracking-tighter transition-all"></button>
         </div>
 
-        <div class="card space-y-6">
-            <div class="flex items-center gap-2 mb-2">
-                <div class="w-1.5 h-5 bg-emerald-500 rounded-full"></div>
-                <h2 class="text-lg font-black text-slate-800">Vano 1 (+)</h2>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Ancho b (cm)</label>
-                    <input type="number" id="b" value="30" oninput="calcular()" class="w-full bg-slate-50 border-none rounded-2xl p-4 font-bold focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Altura h (cm)</label>
-                    <input type="number" id="h" value="50" oninput="calcular()" class="w-full bg-slate-50 border-none rounded-2xl p-4 font-bold focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Recubr. r (cm)</label>
-                    <input type="number" id="r" value="6" oninput="calcular()" class="w-full bg-slate-50 border-none rounded-2xl p-4 font-bold focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black text-slate-400 uppercase italic">f'c (kg/cm²)</label>
-                    <input type="number" id="fc" value="210" oninput="calcular()" class="w-full bg-slate-50 border-none rounded-2xl p-4 font-bold focus:ring-2 focus:ring-emerald-500">
-                </div>
-            </div>
-            <div class="space-y-1">
-                <label class="text-[10px] font-black text-slate-400 uppercase italic">fy (kg/cm²)</label>
-                <input type="number" id="fy" value="4200" oninput="calcular()" class="w-full bg-slate-50 border-none rounded-2xl p-4 font-bold focus:ring-2 focus:ring-emerald-500">
-            </div>
-        </div>
-
-        <div class="card">
-            <h2 class="text-[10px] font-black text-emerald-600 uppercase mb-4 tracking-widest">Refuerzo Longitudinal</h2>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">
-                    <span class="font-bold text-slate-700 text-sm italic">Varilla 5/8"</span>
-                    <div class="flex items-center gap-4">
-                        <button onclick="changeV(3, -1)" class="w-8 h-8 bg-white rounded-full shadow-sm font-black text-xl">-</button>
-                        <span id="v-3" class="font-black text-lg w-4 text-center">3</span>
-                        <button onclick="changeV(3, 1)" class="w-8 h-8 bg-white rounded-full shadow-sm font-black text-xl">+</button>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-5 space-y-6">
+                <div class="input-card p-6 border-t-4 transition-all duration-300" id="configCardBorder">
+                    <h2 class="text-lg font-extrabold text-slate-800 mb-4 flex items-center gap-2">
+                        <span id="vigaTitleDisplay">Configuración</span>
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black text-slate-500 uppercase">Ancho b (cm)</label>
+                            <input type="number" id="b" oninput="updateVigaData('b', this.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black text-slate-500 uppercase">Altura h (cm)</label>
+                            <input type="number" id="h" oninput="updateVigaData('h', this.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black text-slate-500 uppercase">Recubr. r (cm)</label>
+                            <input type="number" id="dp" oninput="updateVigaData('dp', this.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black text-slate-500 uppercase">f'c (kg/cm²)</label>
+                            <input type="number" id="fc" oninput="updateVigaData('fc', this.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="mt-4 space-y-1">
+                        <label class="text-[10px] font-black text-slate-500 uppercase">fy (kg/cm²)</label>
+                        <input type="number" id="fy" oninput="updateVigaData('fy', this.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
-                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">
-                    <span class="font-bold text-slate-700 text-sm italic">Varilla 3/4"</span>
-                    <div class="flex items-center gap-4">
-                        <button onclick="changeV(4, -1)" class="w-8 h-8 bg-white rounded-full shadow-sm font-black text-xl">-</button>
-                        <span id="v-4" class="font-black text-lg w-4 text-center">0</span>
-                        <button onclick="changeV(4, 1)" class="w-8 h-8 bg-white rounded-full shadow-sm font-black text-xl">+</button>
+
+                <div class="input-card p-6">
+                    <h2 class="text-lg font-extrabold text-slate-800 mb-1">Refuerzo Longitudinal</h2>
+                    <p id="syncNotice" class="text-[10px] font-black text-emerald-700 uppercase hidden tracking-wider">Vanos sincronizados</p>
+                    <div class="grid grid-cols-1 gap-2 mt-4" id="steelInventory"></div>
+                    <div class="mt-6 p-4 bg-slate-100 border border-slate-200 rounded-xl flex justify-between items-center shadow-inner">
+                        <div>
+                            <span class="text-[10px] font-black text-slate-500 uppercase">Área Total As</span>
+                            <div id="asTotal" class="text-2xl font-black text-slate-900">0.00 cm²</div>
+                        </div>
+                        <button onclick="resetSteel()" class="bg-red-100 text-red-700 px-4 py-2 rounded-lg font-black text-[10px] uppercase shadow-sm active:shadow-none">Reiniciar</button>
                     </div>
                 </div>
             </div>
-            
-            <div class="mt-6 pt-6 border-t border-slate-100 flex justify-between items-center">
-                <div class="text-[10px] font-black text-slate-400 uppercase">Área Total As</div>
-                <div class="flex items-baseline gap-1">
-                    <span id="as-total" class="text-3xl font-black text-slate-900">5.97</span>
-                    <span class="text-xl font-black italic text-slate-900">cm²</span>
-                </div>
-            </div>
-        </div>
 
-        <div class="bg-gradient-to-br from-emerald-500 to-teal-700 rounded-[40px] p-8 text-white shadow-2xl shadow-emerald-200">
-            <div class="flex justify-between items-start mb-6">
-                <div>
-                    <p class="text-[10px] font-black uppercase opacity-60 tracking-widest">Resistencia (ΦMn)</p>
-                    <div class="text-7xl font-black tracking-tighter" id="phi-mn">9.40<span class="text-2xl font-bold italic ml-2 opacity-40">t-m</span></div>
+            <div class="lg:col-span-7 space-y-6">
+                <div id="resultBox" class="p-8 rounded-3xl text-white shadow-2xl transition-all duration-500">
+                    <p class="text-white/80 font-black uppercase tracking-[0.2em] text-[10px] mb-2">Resistencia de Diseño (φMn)</p>
+                    <div class="flex items-baseline gap-2 mb-6">
+                        <h2 class="text-7xl font-black italic tracking-tighter" id="phiMn">0.00</h2>
+                        <span class="text-4xl font-black text-white italic drop-shadow-sm">t-m</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 border-t border-white/20 pt-6">
+                        <div>
+                            <p class="text-[10px] text-white/70 uppercase font-black tracking-widest">Nominal (Mn)</p>
+                            <p class="text-2xl font-black" id="mnValue">0.00 t-m</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-white/70 uppercase font-black tracking-widest">Factor φ</p>
+                            <p class="text-2xl font-black" id="phiValue">0.900</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4 pt-6 border-t border-white/20">
-                <div>
-                    <p class="text-[9px] font-bold uppercase opacity-60">Nominal (Mn)</p>
-                    <p class="text-xl font-black" id="res-mn">10.45 t-m</p>
-                </div>
-                <div>
-                    <p class="text-[9px] font-bold uppercase opacity-60">Factor Φ</p>
-                    <p class="text-xl font-black">0.900</p>
-                </div>
-            </div>
-        </div>
 
-        <div class="card">
-            <h2 class="text-[10px] font-black text-slate-400 uppercase mb-6 tracking-widest text-center">Análisis Técnico</h2>
-            <div class="space-y-4">
-                <div class="flex justify-between border-b border-slate-50 pb-2">
-                    <span class="text-sm font-bold text-slate-500 italic">Peralte (d)</span>
-                    <span class="font-black text-slate-900" id="res-d">44.0 cm</span>
-                </div>
-                <div class="flex justify-between border-b border-slate-50 pb-2">
-                    <span class="text-sm font-bold text-slate-500 italic">Bloque (a)</span>
-                    <span class="font-black text-slate-900" id="res-a">4.68 cm</span>
-                </div>
-                <div class="flex justify-between border-b border-slate-50 pb-2">
-                    <span class="text-sm font-bold text-slate-500 italic">Eje Neutro (c)</span>
-                    <span class="font-black text-slate-900" id="res-c">5.51 cm</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-sm font-bold text-slate-500 italic">Deform. (εt)</span>
-                    <span class="font-black text-slate-900" id="res-et">0.02096</span>
-                </div>
-            </div>
-            <div id="status" class="mt-6 bg-emerald-50 text-emerald-600 py-3 rounded-xl text-center font-black text-[10px] uppercase tracking-widest border border-emerald-100">
-                Dúctil (Control Tracción)
-            </div>
-        </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="input-card p-6 border-b-4 transition-all" id="techCardBorder">
+                        <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] mb-6 border-b border-slate-100 pb-2">Análisis Técnico</h3>
+                        <div class="space-y-4 text-sm">
+                            <div class="p-4 bg-amber-50 rounded-2xl border-2 border-amber-200 shadow-sm">
+                                <label id="momentoLabel" class="text-[11px] font-black text-amber-800 uppercase block mb-2 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                                    Momento Inducido (Mu)
+                                </label>
+                                <div class="relative">
+                                    <input type="number" id="muManual" oninput="updateVigaData('mu', this.value)" placeholder="0.00" class="w-full p-3 highlight-input rounded-xl font-black text-xl text-slate-900 outline-none">
+                                    <span class="absolute right-4 top-3.5 text-sm font-black text-amber-600 bg-amber-100 px-2 py-0.5 rounded">t-m</span>
+                                </div>
+                                <div id="statusCheck" class="mt-3 text-center uppercase tracking-tighter hidden"></div>
+                            </div>
 
-        <div class="card">
-            <h2 class="text-[10px] font-black text-slate-400 uppercase mb-6 tracking-widest text-center italic">Sección Transversal</h2>
-            <div class="flex justify-center p-8 bg-slate-50 rounded-3xl">
-                <div id="viga-draw" class="border-4 border-slate-300 bg-white relative" style="width: 120px; height: 180px;">
-                    <div class="absolute bottom-4 left-0 right-0 flex justify-around px-2">
-                        <div class="w-3 h-3 bg-slate-800 rounded-full shadow-md"></div>
-                        <div class="w-3 h-3 bg-slate-800 rounded-full shadow-md"></div>
-                        <div class="w-3 h-3 bg-slate-800 rounded-full shadow-md"></div>
+                            <div class="flex justify-between items-center px-2">
+                                <span class="text-slate-500 font-bold">Peralte (d)</span>
+                                <span class="text-slate-900 font-black text-base" id="res_d">0 cm</span>
+                            </div>
+                            <div class="flex justify-between items-center px-2">
+                                <span class="text-slate-500 font-bold">Bloque (a)</span>
+                                <span class="text-slate-900 font-black text-base" id="res_a">0 cm</span>
+                            </div>
+                            <div class="flex justify-between items-center px-2">
+                                <span class="text-slate-500 font-bold">Eje Neutro (c)</span>
+                                <span class="text-slate-900 font-black text-base" id="res_c">0 cm</span>
+                            </div>
+                            <div class="flex justify-between items-center px-2">
+                                <span class="text-slate-500 font-bold">Deform. (εt)</span>
+                                <span id="res_es" class="font-black text-slate-900 text-base">0.00000</span>
+                            </div>
+                            <div class="mt-4 p-3 rounded-xl text-center font-black uppercase text-[11px] tracking-widest shadow-sm" id="ductilityBadge">-</div>
+                        </div>
+                    </div>
+
+                    <div class="input-card p-6 flex flex-col items-center bg-slate-50 border-2 border-slate-200">
+                        <h3 class="text-[13px] font-black text-slate-900 uppercase tracking-[0.2em] mb-4 bg-white px-4 py-1 rounded-full shadow-sm ring-1 ring-slate-200">Sección Transversal</h3>
+                        <canvas id="beamCanvas" width="240" height="320" class="drop-shadow-md"></canvas>
+                        <div id="steelLegend" class="mt-2 text-[10px] text-slate-800 font-black text-center italic uppercase tracking-tighter"></div>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
-        const areas = [0.71, 1.29, 1.99, 2.84, 5.10]; // Varillas en cm2
-        let counts = [0, 0, 3, 0, 0];
+        const vigaConfigs = [
+            { name: "Apoyo 1 (-)", type: "neg", b: 30, h: 50, dp: 6, fc: 210, fy: 4200, bars: [0, 4, 0, 0, 0, 0], mu: 0 },
+            { name: "Vano 1 (+)", type: "pos", b: 30, h: 50, dp: 6, fc: 210, fy: 4200, bars: [0, 0, 3, 0, 0, 0], mu: 0 },
+            { name: "Apoyo 2 (-)", type: "neg", b: 30, h: 50, dp: 6, fc: 210, fy: 4200, bars: [0, 0, 0, 5, 0, 0], mu: 0 },
+            { name: "Vano 2 (+)", type: "pos", b: 30, h: 50, dp: 6, fc: 210, fy: 4200, bars: [0, 3, 0, 0, 0, 0], mu: 0 },
+            { name: "Apoyo Ext (-)", type: "neg", b: 30, h: 50, dp: 6, fc: 210, fy: 4200, bars: [0, 2, 2, 0, 0, 0], mu: 0 }
+        ];
 
-        function changeV(index, delta) {
-            counts[index] = Math.max(0, counts[index] + delta);
-            document.getElementById('v-'+index).innerText = counts[index];
-            calcular();
+        const barTemplates = [
+            { id: 3, name: "3/8\"", area: 0.71, color: "#2563eb" }, 
+            { id: 4, name: "1/2\"", area: 1.29, color: "#059669" }, 
+            { id: 5, name: "5/8\"", area: 1.99, color: "#7c3aed" }, 
+            { id: 6, name: "3/4\"", area: 2.84, color: "#d97706" }, 
+            { id: 8, name: "1\"", area: 5.10, color: "#db2777" }, 
+            { id: 11, name: "1 3/8\"", area: 10.06, color: "#dc2626" } 
+        ];
+
+        let currentIdx = 0;
+
+        function init() {
+            vigaConfigs.forEach((v, i) => {
+                const btn = document.getElementById(`tab-${i}`);
+                if(btn) btn.innerText = v.name;
+            });
+            switchViga(0);
         }
 
-        function calcular() {
-            const b = parseFloat(document.getElementById('b').value) || 0;
-            const h = parseFloat(document.getElementById('h').value) || 0;
-            const r = parseFloat(document.getElementById('r').value) || 0;
-            const fc = parseFloat(document.getElementById('fc').value) || 0;
-            const fy = parseFloat(document.getElementById('fy').value) || 0;
+        function switchViga(index) {
+            currentIdx = index;
+            const viga = vigaConfigs[index];
+            const isPos = viga.type === "pos";
 
-            let As = 0;
-            counts.forEach((qty, i) => As += qty * areas[i]);
-            document.getElementById('as-total').innerText = As.toFixed(2);
+            vigaConfigs.forEach((v, i) => {
+                const btn = document.getElementById(`tab-${i}`);
+                if(btn) {
+                    btn.className = i === index ? 
+                        `flex-1 min-w-[120px] px-4 py-4 text-[10px] uppercase tracking-tighter transition-all ${isPos ? 'tab-pos' : 'tab-neg'}` : 
+                        "flex-1 min-w-[120px] px-4 py-4 text-[10px] uppercase tracking-tighter transition-all tab-inactive";
+                }
+            });
 
-            if (b > 0 && h > 0 && As > 0) {
-                const d = h - r;
-                const a = (As * fy) / (0.85 * fc * b);
-                const c = a / 0.85;
-                const et = ((d - c) / c) * 0.003;
-                const Mn = As * fy * (d - a/2);
-                const phiMn = (Mn * 0.9) / 100000;
+            document.getElementById('resultBox').className = `p-8 rounded-3xl text-white shadow-xl transition-all duration-500 ${isPos ? 'res-pos' : 'res-neg'}`;
+            document.getElementById('configCardBorder').style.borderColor = isPos ? "#10b981" : "#ef4444";
+            document.getElementById('techCardBorder').style.borderColor = isPos ? "#10b981" : "#ef4444";
+            document.getElementById('syncNotice').classList.toggle('hidden', !isPos);
 
-                document.getElementById('phi-mn').innerHTML = phiMn.toFixed(2) + '<span class="text-2xl font-bold italic ml-2 opacity-40">t-m</span>';
-                document.getElementById('res-mn').innerText = (Mn/100000).toFixed(2) + ' t-m';
-                document.getElementById('res-d').innerText = d.toFixed(1) + ' cm';
-                document.getElementById('res-a').innerText = a.toFixed(2) + ' cm';
-                document.getElementById('res-c').innerText = c.toFixed(2) + ' cm';
-                document.getElementById('res-et').innerText = et.toFixed(5);
+            document.getElementById('momentoLabel').innerHTML = isPos ? 
+                `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Momento Positivo (+)` : 
+                `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Momento Negativo (-)`;
+            
+            document.getElementById('muManual').value = viga.mu || "";
 
-                const status = document.getElementById('status');
-                if (et >= 0.005) {
-                    status.innerText = "Dúctil (Control Tracción)";
-                    status.className = "mt-6 bg-emerald-50 text-emerald-600 py-3 rounded-xl text-center font-black text-[10px] uppercase tracking-widest border border-emerald-100";
+            document.getElementById('vigaTitleDisplay').innerText = viga.name;
+            document.getElementById('b').value = viga.b;
+            document.getElementById('h').value = viga.h;
+            document.getElementById('dp').value = viga.dp;
+            document.getElementById('fc').value = viga.fc;
+            document.getElementById('fy').value = viga.fy;
+
+            renderInventory();
+            calculate();
+        }
+
+        function updateVigaData(field, val) {
+            vigaConfigs[currentIdx][field] = parseFloat(val) || 0;
+            calculate();
+        }
+
+        function renderInventory() {
+            const container = document.getElementById('steelInventory');
+            container.innerHTML = '';
+            vigaConfigs[currentIdx].bars.forEach((count, i) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl shadow-sm";
+                div.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="text-xs font-black text-slate-700 uppercase tracking-tighter" style="color: ${barTemplates[i].color}">Varilla ${barTemplates[i].name}</span>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase leading-none">Área: ${barTemplates[i].area} cm²</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button onclick="updateBarCount(${i}, -1)" class="counter-btn w-9 h-9 flex items-center justify-center bg-white border border-slate-300 rounded-full shadow-sm text-slate-800 font-black text-xl">-</button>
+                        <span class="w-5 text-center font-black text-slate-900 text-lg">${count}</span>
+                        <button onclick="updateBarCount(${i}, 1)" class="counter-btn w-9 h-9 flex items-center justify-center bg-white border border-slate-300 rounded-full shadow-sm text-slate-800 font-black text-xl">+</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateBarCount(idx, delta) {
+            const newVal = Math.max(0, vigaConfigs[currentIdx].bars[idx] + delta);
+            vigaConfigs[currentIdx].bars[idx] = newVal;
+            
+            if (vigaConfigs[currentIdx].type === "pos") {
+                vigaConfigs[1].bars[idx] = newVal; 
+                vigaConfigs[3].bars[idx] = newVal; 
+            }
+
+            renderInventory();
+            calculate();
+        }
+
+        function resetSteel() {
+            const zeros = [0, 0, 0, 0, 0, 0];
+            vigaConfigs[currentIdx].bars = [...zeros];
+            if (vigaConfigs[currentIdx].type === "pos") {
+                vigaConfigs[1].bars = [...zeros];
+                vigaConfigs[3].bars = [...zeros];
+            }
+            renderInventory();
+            calculate();
+        }
+
+        function calculate() {
+            const v = vigaConfigs[currentIdx];
+            let As = 0; v.bars.forEach((c, i) => As += c * barTemplates[i].area);
+            document.getElementById('asTotal').innerText = `${As.toFixed(2)} cm²`;
+
+            if (v.b <= 0 || v.h <= 0 || As <= 0) { 
+                limpiarResultados();
+                return; 
+            }
+
+            const d = v.h - v.dp;
+            let beta1 = 0.85; 
+            if (v.fc > 280) beta1 = Math.max(0.65, 0.85 - (0.05 * (v.fc - 280) / 70));
+            
+            const a = (As * v.fy) / (0.85 * v.fc * v.b);
+            const c = a / beta1;
+            const et = 0.003 * (d - c) / c;
+            const ey = v.fy / 2100000;
+            
+            let phi = et >= 0.005 ? 0.90 : (et <= ey ? 0.65 : 0.65 + 0.25 * (et - ey) / (0.005 - ey));
+
+            const MnTonM = (As * v.fy * (d - a/2)) / 100000;
+            const phiMn = phi * MnTonM;
+            
+            document.getElementById('phiMn').innerText = phiMn.toFixed(2);
+            document.getElementById('mnValue').innerText = `${MnTonM.toFixed(2)} t-m`;
+            document.getElementById('phiValue').innerText = phi.toFixed(3);
+            document.getElementById('res_d').innerText = `${d.toFixed(1)} cm`;
+            document.getElementById('res_a').innerText = `${a.toFixed(2)} cm`;
+            document.getElementById('res_c').innerText = `${c.toFixed(2)} cm`;
+            document.getElementById('res_es').innerText = et.toFixed(5);
+
+            const statusBox = document.getElementById('statusCheck');
+            if(v.mu > 0) {
+                statusBox.classList.remove('hidden');
+                if(phiMn >= v.mu) {
+                    statusBox.innerHTML = `<span class="flex items-center justify-center gap-1">✓ SECCIÓN CUMPLE</span>`;
+                    statusBox.className = "mt-3 py-2 px-3 text-[12px] font-black text-center uppercase tracking-widest text-emerald-700 bg-emerald-100 rounded-lg border-2 border-emerald-200 shadow-sm";
                 } else {
-                    status.innerText = "Frágil o Transición";
-                    status.className = "mt-6 bg-red-50 text-red-600 py-3 rounded-xl text-center font-black text-[10px] uppercase tracking-widest border border-red-100";
+                    statusBox.innerHTML = `
+                        <div class="flex flex-col items-center gap-1 alert-danger">
+                            <span class="text-2xl">⚠</span>
+                            <span class="text-[14px] font-black leading-none">NO CUMPLE</span>
+                            <span class="text-[9px] font-bold opacity-80 italic">Refuerzo Insuficiente</span>
+                        </div>
+                    `;
+                    statusBox.className = "mt-3 py-3 px-4 text-center uppercase text-amber-900 bg-amber-400 rounded-xl border-b-4 border-amber-600 shadow-lg ring-2 ring-amber-300 ring-offset-1";
+                }
+            } else {
+                statusBox.classList.add('hidden');
+            }
+
+            const badge = document.getElementById('ductilityBadge');
+            if (et >= 0.005) { 
+                badge.className = "mt-4 p-3 rounded-xl text-center font-black uppercase text-[11px] bg-green-100 text-green-800 ring-1 ring-green-200"; 
+                badge.innerText = "Dúctil (Sección Controlada)"; 
+            } else if (et <= ey) { 
+                badge.className = "mt-4 p-3 rounded-xl text-center font-black uppercase text-[11px] bg-red-100 text-red-800 ring-1 ring-red-200"; 
+                badge.innerText = "Frágil (Compresión)"; 
+            } else { 
+                badge.className = "mt-4 p-3 rounded-xl text-center font-black uppercase text-[11px] bg-amber-100 text-amber-800 ring-1 ring-amber-200"; 
+                badge.innerText = "Transición"; 
+            }
+
+            drawBeam(v.b, v.h, d, v.bars, v.type === "pos");
+        }
+
+        function limpiarResultados() {
+            document.getElementById('phiMn').innerText = "0.00";
+            document.getElementById('mnValue').innerText = "0.00 t-m";
+            document.getElementById('res_es').innerText = "0.00000";
+            document.getElementById('ductilityBadge').innerText = "-";
+            document.getElementById('statusCheck').classList.add('hidden');
+            document.getElementById('ductilityBadge').className = "mt-4 p-3 rounded-xl text-center font-bold uppercase text-[11px] bg-slate-100 text-slate-400";
+        }
+
+        function drawBeam(b, h, d, bars, isPos) {
+            const canvas = document.getElementById('beamCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const marginX = 65;
+            const marginY = 85; 
+            const drawAreaW = canvas.width - (marginX * 2);
+            const drawAreaH = canvas.height - (marginY * 2);
+
+            const scale = Math.min(drawAreaW / b, drawAreaH / h);
+            const w = b * scale, rH = h * scale, sD = d * scale;
+            const startX = (canvas.width - w) / 2, startY = (canvas.height - rH) / 2;
+
+            ctx.strokeStyle = "#0f172a";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(startX, startY, w, rH);
+            
+            let activeBars = [];
+            bars.forEach((count, idx) => {
+                for(let i=0; i<count; i++) activeBars.push({...barTemplates[idx]});
+            });
+            activeBars.sort((a, b) => b.area - a.area);
+
+            let sortedBars = [];
+            if(activeBars.length > 0) {
+                if(activeBars.length === 1) sortedBars = activeBars;
+                else {
+                    let sideBars = [activeBars.shift(), activeBars.shift()];
+                    sortedBars = [sideBars[0], ...activeBars, sideBars[1]];
                 }
             }
+
+            const sY = isPos ? startY + sD : startY + (rH - sD);
+            const tB = sortedBars.length;
+            const steelColor = isPos ? "#10b981" : "#ef4444";
+
+            sortedBars.forEach((bar, i) => {
+                const posX = startX + (w/(tB + 1))*(i+1);
+                ctx.fillStyle = steelColor;
+                ctx.beginPath(); ctx.arc(posX, sY, 7, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = "#000000"; ctx.lineWidth = 1.5; ctx.stroke();
+
+                ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1.5;
+                
+                const arrowLength = 55 + (i % 2 === 0 ? 0 : 25); 
+                const labelY = sY - arrowLength; 
+                
+                ctx.beginPath();
+                ctx.moveTo(posX, sY);
+                ctx.lineTo(posX, labelY);
+                ctx.stroke();
+                
+                ctx.font = "900 11px Inter";
+                ctx.fillStyle = bar.color;
+                ctx.textAlign = "center";
+                ctx.fillText(`Φ${bar.name}`, posX, labelY - 8);
+            });
+
+            const cotaColor = "#1e293b";
+            const fontStyle = "900 12px Inter";
+            ctx.fillStyle = cotaColor;
+            ctx.strokeStyle = cotaColor;
+            ctx.lineWidth = 2.5;
+            ctx.font = fontStyle;
+            ctx.textAlign = "center";
+
+            const drawCotaLine = (x1, y1, x2, y2) => {
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+                const size = 5;
+                ctx.beginPath(); ctx.moveTo(x1-size, y1-size); ctx.lineTo(x1+size, y1+size); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x2-size, y2-size); ctx.lineTo(x2+size, y2+size); ctx.stroke();
+            };
+
+            const bY = startY + rH + 30;
+            drawCotaLine(startX, bY, startX + w, bY);
+            ctx.fillText(`b = ${b} cm`, startX + w/2, bY + 18);
+
+            const dX = startX - 35;
+            const dEndY = isPos ? startY + sD : startY + (rH - sD);
+            const dStartY = isPos ? startY : startY + rH;
+            drawCotaLine(dX, dStartY, dX, dEndY);
+            ctx.save();
+            ctx.translate(dX - 12, (dStartY + dEndY)/2);
+            ctx.rotate(-Math.PI/2);
+            ctx.fillText(`d = ${d.toFixed(1)} cm`, 0, 0);
+            ctx.restore();
+            
+            const hX = startX + w + 35;
+            drawCotaLine(hX, startY, hX, startY + rH);
+            ctx.save();
+            ctx.translate(hX + 12, startY + rH/2);
+            ctx.rotate(Math.PI/2);
+            ctx.fillText(`h = ${h} cm`, 0, 0);
+            ctx.restore();
+
+            const legend = document.getElementById('steelLegend');
+            legend.innerHTML = bars.map((c, idx) => c > 0 ? `<span style="color: ${barTemplates[idx].color}">${c}Φ${barTemplates[idx].name}</span>` : "").filter(s => s).join(" | ");
         }
-        calcular();
+
+        window.onload = init;
     </script>
 </body>
 </html>
+
